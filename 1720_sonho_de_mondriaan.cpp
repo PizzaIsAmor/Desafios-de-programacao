@@ -1,13 +1,15 @@
 #include <iostream>
+#include <vector>
 
 #define INF 11
+#define MAX_BLOCOS 61
 
 using namespace std;
 
 int altura;
 int largura;
 int quadro[INF][INF];
-int respostas[INF + 1][INF + 1];
+int respostas[MAX_BLOCOS][INF + 1][INF + 1];
 
 void proximaPosicao(int *x, int *y) {
     while ((*y) < altura) {
@@ -16,18 +18,18 @@ void proximaPosicao(int *x, int *y) {
                 return;
             }
 
-        ++(*y);
+        (*y) += 1;
     }
 }
 
-int mondriaan(int x, int y) {
-    if (respostas[x][y] != -1)
-        return respostas[x][y];
+int mondriaan(int x, int y, int bloco) {
+    if (respostas[bloco][x][y] != -1)
+        return respostas[bloco][x][y];
+
+    respostas[bloco][x][y] = 0;
 
     if (x == largura && y == altura)
-        return 1;
-
-    int resp = 0;
+        respostas[bloco][x][y]++;
 
     // adiciona horizontal
     if (x + 1 <= largura - 1 && quadro[x + 1][y] == -1) {
@@ -39,7 +41,7 @@ int mondriaan(int x, int y) {
         int xLocal, yLocal = y;
         proximaPosicao(&xLocal, &yLocal);
 
-        resp += mondriaan(xLocal, yLocal);
+        respostas[bloco][x][y] += mondriaan(xLocal, yLocal, bloco + 1);
 
         // reseta quadro
         quadro[x][y] = -1;
@@ -56,28 +58,29 @@ int mondriaan(int x, int y) {
         int xLocal, yLocal = y;
         proximaPosicao(&xLocal, &yLocal);
 
-        resp += mondriaan(xLocal, yLocal);
+        respostas[bloco][x][y] += mondriaan(xLocal, yLocal, bloco + 1);
 
         //reseta quadro
         quadro[x][y] = -1;
         quadro[x][y + 1] = -1;
     }
 
-    return resp;
+    return respostas[bloco][x][y];
 }
 
 int main() {
     // Prepara tabela de resolução
-    for (int i = 0; i < INF; ++i)
-        fill(quadro[i], quadro[i] + INF, -1);
-
-    // prepara tabela dos calculos salvos
-    for (int i = 0; i < INF + 1; ++i)
-        fill(respostas[i], respostas[i] + INF + 1, -1);
+    for (auto & i : quadro)
+        fill(i, i + INF, -1);
 
     cin >> altura >> largura;
     while (altura != 0 && largura != 0) {
-        cout << mondriaan(0, 0) << endl;
+        // prepara tabela dos calculos salvos
+        for (auto & resposta : respostas)
+            for (auto & i : resposta)
+                fill(i, i + INF + 1, -1);
+
+        cout << mondriaan(0, 0, 0) << endl;
 
         cin >> altura >> largura;
     }
